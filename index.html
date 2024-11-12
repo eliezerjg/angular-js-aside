@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="myApp">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AngularJS Sidebar com Submenus Laterais e ExtraItems</title>
+  <!-- Bootstrap 5.3 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet" />
+  <style>
+    body {
+      overflow-x: hidden;
+      margin: 0;
+    }
+    
+    :root {
+      --min-width: 150px;
+    }
+    
+    #sidebar {
+      height: 100vh;
+      background-color: #343a40;
+      padding-top: 20px;
+      position: fixed;
+      width: var(--min-width); 
+      top: 0;
+      left: 0;
+      z-index: 1000;
+    }
+    #sidebar a {
+      color: #fff;
+      text-decoration: none;
+      transition: background-color 0.3s, color 0.3s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #sidebar .nav-item:hover {
+      background-color: #495057;
+    }
+    #sidebar .nav-item:hover > a {
+      color: #00d8ff;
+    }
+    #sidebar .submenu {
+      position: absolute;
+      left: var(--min-width); 
+      top: 0;
+      background-color: #495057;
+      min-width: var(--min-width); 
+      display: none;
+      z-index: 1001;
+    }
+    #sidebar .nav-item.open > .submenu {
+      display: block;
+    }
+    #sidebar .submenu a {
+      color: #fff;
+    }
+    #sidebar .submenu .nav-item:hover > a {
+      color: #00d8ff;
+    }
+    .main-content {
+      margin-left: var(--min-width);
+      padding: 20px;
+      transition: margin-left 0.3s ease;
+    }
+
+    @media (max-width: 768px) {
+      #sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+      }
+      .main-content {
+        margin-left: 0;
+      }
+    }
+  </style>
+</head>
+<body ng-controller="MainCtrl">
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Sidebar usando a diretiva -->
+      <sidebar items="sidebarItems" extra-items="extraItems"></sidebar>
+    </div>
+  </div>
+
+  <!-- AngularJS e Bootstrap JS -->
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    angular.module('myApp', [])
+      .controller('MainCtrl', function ($scope) {
+        $scope.sidebarItems = [
+          {
+            name: "Dashboard",
+            icon: "bi bi-house",
+            children: []
+          },
+          {
+            name: "Settings",
+            icon: "bi bi-gear",
+            children: [
+              {
+                name: "Profile",
+                icon: "bi bi-person",
+                children: [
+                  {
+                    name: "Personal Info",
+                    icon: "bi bi-card-text",
+                    children: []
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            name: "Reports",
+            icon: "bi bi-bar-chart",
+            children: []
+          }
+        ];
+
+        $scope.extraItems = [
+          {
+            name: "Help",
+            icon: "bi bi-question-circle"
+          },
+          {
+            name: "Contact Us",
+            icon: "bi bi-envelope"
+          },
+          {
+            name: "Logout",
+            icon: "bi bi-box-arrow-right"
+          }
+        ];
+      })
+      .directive('sidebar', function () {
+        return {
+          restrict: 'E',
+          scope: {
+            items: '=',
+            extraItems: '='
+          },
+          template: `
+            <nav id="sidebar" class="sidebar">
+              <ul class="nav flex-column">
+                <sidebar-item ng-repeat="item in items" item="item"></sidebar-item>
+                <li class="nav-item" ng-repeat="extra in extraItems">
+                  <a href="#" class="nav-link d-flex align-items-center">
+                    <i ng-class="extra.icon" class="me-2"></i> <span>{{ extra.name }}</span>
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          `
+        };
+      })
+      .directive('sidebarItem', function () {
+        return {
+          restrict: 'E',
+          scope: {
+            item: '='
+          },
+          template: `
+            <li class="nav-item position-relative" ng-class="{'open': item.open}">
+              <a href="#" class="nav-link d-flex justify-content-between align-items-center" ng-click="toggleSubmenu(item)">
+                <i ng-class="item.icon"></i>
+                <span>{{ item.name }}</span>
+                <i class="bi" ng-class="item.children.length ? (item.open ? 'bi-chevron-down' : 'bi-chevron-right') : ''"></i>
+              </a>
+              
+              <ul class="nav flex-column submenu" ng-show="item.open && item.children.length">
+                <sidebar-item ng-repeat="child in item.children" item="child"></sidebar-item>
+              </ul>
+            </li>
+          `,
+          link: function (scope) {
+            scope.toggleSubmenu = function (item) {
+              if (item.children && item.children.length > 0) {
+                item.open = !item.open;
+              }
+            };
+          }
+        };
+      });
+  </script>
+</body>
+</html>
